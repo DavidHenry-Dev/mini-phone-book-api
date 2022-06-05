@@ -1,5 +1,8 @@
 const express = require('express')
+const { json } = require('express/lib/response')
 const app = express()
+
+app.use(express.json())
 
 let phoneBook = [
     { 
@@ -50,6 +53,45 @@ app.get('/info', (request, response) => {
    
     
   })
+
+  
+// CREATES NEW ID FOR POST
+ const generateId = () => {
+    const maxId = phoneBook.length > 0
+      ? Math.max(...phoneBook.map(n => n.id))
+      : 0
+    return maxId + 1
+  }
+
+  app.post('/api/persons', (request,response) => {
+    const body = request.body
+   
+//    HANDLES DUPLICATE OR MISSING NAME ERRORS
+    if (!body.name || body.name === phoneBook[0]["name"]) {
+      return response.status(400).json({ 
+        error: 'Name missing or already exist' 
+      })
+    }
+//    HANDLES MISSING NUMBER ERRORS
+    if (!body.number) {
+        return response.status(400).json({ 
+          error: 'Phone number missing' 
+        })
+      }
+  
+    const person = {
+      id: generateId(),
+      name: body.name,
+      number: body.number,
+    }
+  
+    phoneBook = phoneBook .concat(person)
+  
+    response.json(person)
+
+  })
+
+
 
   app.delete('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
